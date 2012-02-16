@@ -95,7 +95,6 @@ class HashCheck:
 
         sha1sum = sha1.digest()
         chunkhash = self.get_piece(chunk)
-        logging.info('[chunk:%d] hashcheck %s (%s)' % (chunk, sha1sum.encode('hex'), chunkhash.encode('hex')))
 
         if sha1sum == chunkhash:
             return {'status': 'ok', 'chunk': chunk, 'hash': sha1sum.encode('hex')}
