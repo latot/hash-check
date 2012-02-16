@@ -6,14 +6,15 @@ import pp
 import argparse
 import logging
 
-LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
-logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG, filename="hash-check.log")
+#LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
+#logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG, filename="/home/blaynhash-check.log")
 
 if __name__ == '__main__':
     opts = argparse.ArgumentParser(description='pyHashCheck')
 
     opts.add_argument('torrent', metavar='TORRENT', help='path to torrent file', nargs=1)
     opts.add_argument('--path', default='.', metavar='PATH', help='path to torrent data', nargs=1)
+    opts.add_argument('--threads', default=4, metavar='threads', help='number of threads')
 
     options = opts.parse_args()
 
@@ -28,6 +29,8 @@ if __name__ == '__main__':
     hc.check(options.path[0])
 
     server = pp.Server()
+
+    server.set_ncpus(int(options.threads))
     imports = ('hashlib', 'logging', 'os')
 
     step = 100
@@ -39,6 +42,5 @@ if __name__ == '__main__':
     for x in datas:
         output = x()
         for y in output:
-            if y['status'] != 'ok':
+            if y['status'] == 'fail':
                 print y
-                exit()
