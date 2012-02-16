@@ -79,6 +79,14 @@ class HashCheck:
 
             logging.info('[chunk:%d] reading %d bytes starting @ %d from %s' %
                         (chunk, byte_count, start_byte, file_path))
+
+            if not os.path.isfile(file_path):
+                base_name = os.path.basename(file_path)
+                if os.path.isfile(base_name):
+                    file_path = base_name
+                else:
+                    return {'status': 'fail', 'reason': 'Unable to find file "%s"' % file_path, 'chunk': chunk}
+
             data_file = open(file_path, 'rb')
             if start_byte > 0:
                 data_file.seek(start_byte)
@@ -99,7 +107,7 @@ class HashCheck:
         if sha1sum == chunkhash:
             return {'status': 'ok', 'chunk': chunk, 'hash': sha1sum.encode('hex')}
 
-        message = '[chunk:%d] error hash does not match %s vs %s' % (chunk, sha1sum.encode('hex'), chunkhash.encode('hex'))
+        message = '[chunk:%d] [file:%s] error hash does not match %s vs %s' % (chunk, file_path,  sha1sum.encode('hex'), chunkhash.encode('hex'))
         return {'status': 'fail', 'reason': message, 'chunk': chunk}
 
     def get_piece(self, chunk):
