@@ -7,7 +7,7 @@ import argparse
 import logging
 
 LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
-logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)  # , filename="log.txt")
+logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG, filename="hash-check.log")
 
 if __name__ == '__main__':
     opts = argparse.ArgumentParser(description='pyHashCheck')
@@ -27,22 +27,18 @@ if __name__ == '__main__':
     logging.info('starting hash check: %s pieces in %s files' % (hc.piece_count, len(hc.file_list)))
     hc.check(options.path[0])
 
-    hash_data = []
     server = pp.Server()
     imports = ('hashlib', 'logging', 'os')
 
-    for x in xrange(hc.piece_count):
-        f1 = server.submit(hc.check_chunk, (x,), (), imports)
-        hash_data.append(f1)
+    step = 100
+    datas = []
+    for x in xrange(0, hc.piece_count, step):
+        f = server.submit(hc.check_chunks, (x, step), (), imports)
+        datas.append(f)
 
-    for x in hash_data:
-        print x()
-
-    '''
-    for x in xrange(hc.piece_count):
-        output = hc.check_chunk(x)
-        hash_data[x] = output['status'] == 'ok'
-        if output['status'] != 'ok':
-            logging.error(output['message'])
-            exit()
-    '''
+    for x in datas:
+        output = x()
+        for y in output:
+            if y['status'] != 'ok':
+                print y
+                exit()

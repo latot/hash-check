@@ -48,7 +48,16 @@ class HashCheck:
                 output.append({'path': file_path, 'length': f['length'], 'offset': offset})
                 offset += f['length']
         else:
-            output.append({'path': name, 'length': 0, 'offset': offset})
+            output.append({'path': name, 'length': self.info['length'], 'offset': offset})
+        return output
+
+    def check_chunks(self, chunk, number):
+        output = []
+        for x in xrange(chunk, chunk + number):
+            if x >= self.piece_count:
+                break
+
+            output.append(self.check_chunk(x))
         return output
 
     def check_chunk(self, chunk):
@@ -109,7 +118,7 @@ class HashCheck:
                 break
 
         if file_index == -1:
-            raise Exception('error finding chunk data for [chunk:%d] offset:%d' % (chunk, offset))
+            raise Exception('error finding chunk data for [chunk:%d] [offset:%d] [count:%d]' % (chunk, offset, self.file_count))
 
         start_file = self.file_list[file_index]
         start_offset = offset - start_file['offset']
