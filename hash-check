@@ -1,0 +1,48 @@
+#!/usr/bin/env python
+
+from hashcheck import HashCheck
+
+import pp
+import argparse
+import logging
+
+LOG_FORMAT = "%(asctime)s [%(levelname)s] %(message)s"
+logging.basicConfig(format=LOG_FORMAT, level=logging.DEBUG)  # , filename="log.txt")
+
+if __name__ == '__main__':
+    opts = argparse.ArgumentParser(description='pyHashCheck')
+
+    opts.add_argument('torrent', metavar='TORRENT', help='path to torrent file', nargs=1)
+    opts.add_argument('--path', default='.', metavar='PATH', help='path to torrent data', nargs=1)
+
+    options = opts.parse_args()
+
+    if len(options.torrent) != 1:
+        logging.error('Invalid torrent file "%s"' % ' '.join(options.path))
+        opts.print_usage()
+        exit()
+
+    hc = HashCheck(options.torrent[0])
+
+    logging.info('starting hash check: %s pieces in %s files' % (hc.piece_count, len(hc.file_list)))
+    hc.check(options.path[0])
+
+    hash_data = []
+    server = pp.Server()
+    imports = ('hashlib', 'logging', 'os')
+
+    for x in xrange(hc.piece_count):
+        f1 = server.submit(hc.check_chunk, (x,), (), imports)
+        hash_data.append(f1)
+
+    for x in hash_data:
+        print x()
+
+    '''
+    for x in xrange(hc.piece_count):
+        output = hc.check_chunk(x)
+        hash_data[x] = output['status'] == 'ok'
+        if output['status'] != 'ok':
+            logging.error(output['message'])
+            exit()
+    '''
