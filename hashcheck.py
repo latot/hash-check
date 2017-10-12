@@ -4,10 +4,9 @@ import bencode
 import os
 import logging
 
-
 class HashCheck:
 
-    def __init__(self, torrent_path):
+    def __init__(self, torrent_path, path):
         if not os.path.isfile(torrent_path):
             raise Exception('Unable to open torrent file : %s' % torrent_path)
 
@@ -20,10 +19,17 @@ class HashCheck:
 
         self.piece_count = len(self.pieces) / 20
         self.file_list = self._get_files()
-        self.file_count = len(self.file_list)
+        self.file_count = len(self.file_list) 
+
+        self.path = path
+
+	logging.info(self.meta)
+	logging.info(self.pieces.encode("hex"))
+	
 
     def check(self, path):
         '''
+	logging.info(path)
         for x in self.get_pieces():
             logging.info('%s' % x.encode("hex"))
         '''
@@ -75,7 +81,7 @@ class HashCheck:
             end_byte = f['end']
             byte_count = end_byte - start_byte
 
-            file_path = f['file']['path']
+            file_path = str(self.path) + "/" + f['file']['path']
 
             logging.info('[chunk:%d] reading %d bytes starting @ %d from %s' %
                         (chunk, byte_count, start_byte, file_path))
